@@ -171,13 +171,21 @@ def fetch_coastal_photo():
         import random
         search = PHOTO_SEARCHES[datetime.now().timetuple().tm_yday % len(PHOTO_SEARCHES)]
         print(f"  Fetching photo: {search}")
-        url = (
-            f"https://pixabay.com/api/?key={PIXABAY_KEY}"
-            f"&q={requests.utils.quote(search)}&image_type=photo"
-            f"&orientation=horizontal&category=nature&min_width=1200"
-            f"&safesearch=true&per_page=10"
-        )
-        r = requests.get(url, timeout=15)
+        params = {
+            "key": PIXABAY_KEY,
+            "q": search,
+            "image_type": "photo",
+            "orientation": "horizontal",
+            "category": "nature",
+            "min_width": 1200,
+            "safesearch": "true",
+            "per_page": 10
+        }
+        r = requests.get("https://pixabay.com/api/", params=params, timeout=15)
+        print(f"  Pixabay status: {r.status_code}")
+        if r.status_code != 200:
+            print(f"  Pixabay error: {r.text[:200]}")
+            return None
         hits = r.json().get("hits", [])
         if not hits:
             print("  No photos found")
@@ -375,11 +383,8 @@ def main():
         display = DISPLAY_NAMES.get(info["name"], info["name"])
         tide_data[sid] = {**info, "name": display, "data": get_tide_readings(sid)}
 
-    print("\nFetching coastal photo...")
-    photo_data = fetch_coastal_photo()
-
     print("\nGenerating image...")
-    image_path = generate_image(tide_data, photo_data)
+    image_path = generate_image(tide_data)
 
     print("\nSending email...")
     send_email(image_path)
