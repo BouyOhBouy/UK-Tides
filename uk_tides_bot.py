@@ -40,6 +40,15 @@ GMAIL_USER     = "stevencocks77@gmail.com"
 GMAIL_PASSWORD = os.environ.get("GMAIL_APP_PASSWORD", "")
 EMAIL_TO       = "stevencocks77@gmail.com"
 EA_BASE        = "https://environment.data.gov.uk/flood-monitoring"
+PIXABAY_KEY    = os.environ.get("PIXABAY_API_KEY", "")
+
+# Search terms rotated daily for variety
+PHOTO_SEARCHES = [
+    "Cornwall coast beach", "Devon coastline sea", "St Ives Cornwall",
+    "Newquay beach surf", "Plymouth Sound", "Cornish harbour",
+    "Devon beach sunset", "Cornwall cliffs ocean", "Penzance Cornwall",
+    "Ilfracombe Devon coast"
+]
 
 # Target station names to search for — the script finds the correct IDs automatically
 TARGET_STATIONS = [
@@ -151,6 +160,40 @@ def detect_peaks(readings):
         if values[i] == min(seg) and values[i] < values[i-1]: lows.append((times[i],  values[i]))
     return highs, lows
 
+# ─── PHOTO FETCH ─────────────────────────────────────────────────────────────
+
+def fetch_coastal_photo():
+    """Fetches a free coastal photo from Pixabay, rotated daily."""
+    if not PIXABAY_KEY:
+        print("  No Pixabay key — skipping photo")
+        return None
+    try:
+        import random
+        search = PHOTO_SEARCHES[datetime.now().timetuple().tm_yday % len(PHOTO_SEARCHES)]
+        print(f"  Fetching photo: {search}")
+        url = (
+            f"https://pixabay.com/api/?key={PIXABAY_KEY}"
+            f"&q={requests.utils.quote(search)}&image_type=photo"
+            f"&orientation=horizontal&category=nature&min_width=1200"
+            f"&safesearch=true&per_page=10"
+        )
+        r = requests.get(url, timeout=15)
+        hits = r.json().get("hits", [])
+        if not hits:
+            print("  No photos found")
+            return None
+        # Pick a different photo each day
+        photo = hits[datetime.now().day % len(hits)]
+        img_url = photo["webformatURL"]
+        img_r = requests.get(img_url, timeout=15)
+        from io import BytesIO
+        img = Image.open(BytesIO(img_r.content)).convert("RGB")
+        print(f"  Photo fetched: {photo.get('pageURL','')}")
+        return img, photo.get("user", "Pixabay")
+    except Exception as e:
+        print(f"  Photo fetch failed: {e}")
+        return None
+
 # ─── IMAGE GENERATION ────────────────────────────────────────────────────────
 
 BG      = (10, 15, 25)
@@ -186,7 +229,7 @@ def sparkline(draw, readings, x, y, w, h):
         draw.line([pts[i], pts[i+1]], fill=HI_COL, width=2)
 
 
-def generate_image(tide_data):
+def generate_image(tide_data, photo_data=None):
     img  = Image.new("RGB", (1080, 1080), BG)
     draw = ImageDraw.Draw(img)
 
@@ -241,6 +284,30 @@ def generate_image(tide_data):
 
         if d["today_readings"]:
             sparkline(draw, d["today_readings"], cx+cw-158, cy+38, 148, 112)
+
+    # Photo strip
+    if photo_data:
+        try:
+            photo_img, photographer = photo_data
+            # Resize to 1080 wide, 200 tall strip
+            strip_h = 200
+            ratio = 1080 / photo_img.width
+            new_h = int(photo_img.height * ratio)
+            photo_img = photo_img.resize((1080, new_h), Image.LANCZOS)
+            # Crop to centre strip
+            top = (new_h - strip_h) // 2
+            photo_img = photo_img.crop((0, top, 1080, top + strip_h))
+            # Darken slightly
+            from PIL import ImageEnhance
+            photo_img = ImageEnhance.Brightness(photo_img).enhance(0.7)
+            img.paste(photo_img, (0, 830))
+            # Overlay text on photo
+            draw.text((20, 840), "TODAY'S COAST", font=font(13, True), fill=TITLE)
+            draw.text((20, 858), "Plan your coastal day safely", font=font(16, True), fill=TEXT)
+            draw.text((20, 882), "#UKTides #CoastalSafety #UKCoast #Cornwall #Devon", font=font(13), fill=MUTED)
+            draw.text((1060, 1022), f"Photo: {photographer} / Pixabay", font=font(11), fill=(80,100,120), anchor="rb")
+        except Exception as e:
+            print(f"  Could not paste photo: {e}")
 
     # Footer
     draw.rectangle([(0,1032),(1080,1080)], fill=(15,22,38))
