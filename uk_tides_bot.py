@@ -44,8 +44,8 @@ EA_BASE        = "https://environment.data.gov.uk/flood-monitoring"
 # Target station names to search for — the script finds the correct IDs automatically
 TARGET_STATIONS = [
     "Plymouth", "Newlyn", "Ilfracombe",
-    "Devonport", "Brixham", "Exmouth",
-    "Bournemouth", "Weymouth", "Portsmouth", "Swanage"
+    "Bournemouth", "Weymouth", "Portsmouth",
+    "Avonmouth", "Barmouth", "Hinkley", "Fishguard"
 ]
 
 # ─── STATION DISCOVERY ───────────────────────────────────────────────────────
