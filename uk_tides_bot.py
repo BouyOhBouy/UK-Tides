@@ -13,6 +13,27 @@ from email.mime.text import MIMEText
 from email.mime.image import MIMEImage
 from PIL import Image, ImageDraw, ImageFont
 
+# ─── BST HELPER ──────────────────────────────────────────────────────────────
+
+def to_local_time(utc_dt):
+    """Converts UTC datetime to UK local time (BST in summer, GMT in winter)."""
+    import time
+    # UK is UTC+1 during BST (last Sunday March to last Sunday October)
+    year = utc_dt.year
+    # Find last Sunday in March
+    import calendar
+    def last_sunday(year, month):
+        last_day = calendar.monthrange(year, month)[1]
+        for day in range(last_day, 0, -1):
+            if datetime(year, month, day).weekday() == 6:
+                return datetime(year, month, day, 1, 0, tzinfo=timezone.utc)
+    bst_start = last_sunday(year, 3)
+    bst_end   = last_sunday(year, 10)
+    if bst_start <= utc_dt.replace(tzinfo=timezone.utc) < bst_end:
+        from datetime import timedelta
+        return utc_dt + timedelta(hours=1), "BST"
+    return utc_dt, "GMT"
+
 # ─── CONFIGURATION ────────────────────────────────────────────────────────────
 
 GMAIL_USER     = "stevencocks77@gmail.com"
@@ -22,8 +43,9 @@ EA_BASE        = "https://environment.data.gov.uk/flood-monitoring"
 
 # Target station names to search for — the script finds the correct IDs automatically
 TARGET_STATIONS = [
-    "Plymouth", "Newlyn", "St Ives", "Falmouth", "Padstow",
-    "Ilfracombe", "Brixham", "Exmouth", "Devonport", "Looe"
+    "Plymouth", "Newlyn", "Ilfracombe",
+    "Devonport", "Brixham", "Exmouth",
+    "Bournemouth", "Weymouth", "Portsmouth", "Swanage"
 ]
 
 # ─── STATION DISCOVERY ───────────────────────────────────────────────────────
@@ -87,7 +109,8 @@ def get_tide_readings(station_id):
         result["today_readings"] = readings
         latest_ts, latest_val    = readings[-1]
         result["latest_level"]   = round(latest_val, 2)
-        result["latest_time"]    = latest_ts.strftime("%H:%M")
+        local_ts, tz_label = to_local_time(latest_ts)
+        result["latest_time"]    = local_ts.strftime("%H:%M") + f" {tz_label}"
 
         if len(readings) >= 3:
             recent, earlier = readings[-1][1], readings[-3][1]
@@ -190,7 +213,8 @@ def generate_image(tide_data):
         draw.text((cx+16, cy+yo), "HIGH TIDES", font=font(12), fill=HI_COL); yo+=16
         if d["highs"]:
             for ts,v in d["highs"][:2]:
-                draw.text((cx+16, cy+yo), f"  {ts.strftime('%H:%M')}  {v:.2f}m", font=font(15), fill=HI_COL); yo+=18
+                local_ts_h, tz_h = to_local_time(ts)
+                draw.text((cx+16, cy+yo), f"  {local_ts_h.strftime('%H:%M')} {tz_h}  {v:.2f}m", font=font(15), fill=HI_COL); yo+=18
         else:
             draw.text((cx+16, cy+yo), "  Not yet today", font=font(14), fill=MUTED); yo+=18
 
