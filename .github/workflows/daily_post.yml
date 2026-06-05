@@ -22,4 +22,5 @@ jobs:
       - name: Run bot
         env:
           GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          PIXABAY_API_KEY: ${{ secrets.PIXABAY_API_KEY }}
         run: python uk_tides_bot.py
