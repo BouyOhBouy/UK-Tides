@@ -37,9 +37,8 @@ from datetime import datetime, timezone
 from PIL import Image, ImageDraw, ImageFont
 
 # ─── CONFIGURATION ────────────────────────────────────────────────────────────
-
-INSTA_USERNAME = os.environ.get("INSTA_USERNAME", "YOUR_INSTAGRAM_USERNAME")
-INSTA_PASSWORD = os.environ.get("INSTA_PASSWORD", "YOUR_INSTAGRAM_PASSWORD")
+INSTA_USERNAME = "bouy_oh_bouy"
+INSTA_PASSWORD = "Flossy19!"
 
 # Environment Agency station IDs → label and rough map position on a 1080x1080 canvas
 # Positions are (x, y) — tweak to match your map template
