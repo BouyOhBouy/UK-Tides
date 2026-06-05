@@ -58,7 +58,7 @@ def get_tide_readings(station_id):
     result = {"latest_level": None, "trend": "—", "today_readings": [], "highs": [], "lows": [], "error": False}
     try:
         # Use last 24 hours instead of just today so we always have data
-        url = f"{EA_BASE}/id/stations/{station_id}/readings?_sorted&_limit=200&unitName=m"
+        url = f"{EA_BASE}/id/stations/{station_id}/readings?_sorted&_limit=200"
         r = requests.get(url, timeout=15)
         if r.status_code != 200:
             print(f"    HTTP {r.status_code} for {station_id}")
@@ -67,7 +67,7 @@ def get_tide_readings(station_id):
 
         items = r.json().get("items", [])
         if not items:
-            print(f"    No readings yet today for {station_id}")
+            print(f"    Empty response from API for {station_id} - items count: {len(items)}")
             result["error"] = True
             return result
 
