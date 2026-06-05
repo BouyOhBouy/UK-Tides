@@ -45,8 +45,22 @@ EA_BASE        = "https://environment.data.gov.uk/flood-monitoring"
 TARGET_STATIONS = [
     "Plymouth", "Newlyn", "Ilfracombe",
     "Bournemouth", "Weymouth", "Portsmouth",
-    "Avonmouth", "Barmouth", "Hinkley", "Fishguard"
+    "Avonmouth", "Barmouth", "Hinkley", "Lyme Regis"
 ]
+
+# Friendlier display names shown on the image
+DISPLAY_NAMES = {
+    "Plymouth":   "Plymouth / Looe",
+    "Newlyn":     "Newlyn / Penzance / St Ives",
+    "Ilfracombe": "Ilfracombe / N Devon",
+    "Bournemouth":"Bournemouth / Poole",
+    "Weymouth":   "Weymouth / Dorset",
+    "Portsmouth": "Portsmouth / Solent",
+    "Avonmouth":  "Avonmouth / Bristol",
+    "Barmouth":   "Barmouth / W Wales",
+    "Hinkley":    "Hinkley Pt / Somerset",
+    "Lyme Regis": "Lyme Regis / Jurassic Coast",
+}
 
 # ─── STATION DISCOVERY ───────────────────────────────────────────────────────
 
@@ -291,7 +305,8 @@ def main():
     tide_data = {}
     for sid, info in stations.items():
         print(f"  {info['name']}...")
-        tide_data[sid] = {**info, "data": get_tide_readings(sid)}
+        display = DISPLAY_NAMES.get(info["name"], info["name"])
+        tide_data[sid] = {**info, "name": display, "data": get_tide_readings(sid)}
 
     print("\nGenerating image...")
     image_path = generate_image(tide_data)
