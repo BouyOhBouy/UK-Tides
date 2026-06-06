@@ -53,8 +53,7 @@ PHOTO_SEARCHES = [
 # Target station names to search for — the script finds the correct IDs automatically
 TARGET_STATIONS = [
     "Plymouth", "Newlyn", "Ilfracombe",
-    "Bournemouth", "Weymouth", "Portsmouth",
-    "Avonmouth", "Barmouth", "Hinkley", "Lyme Regis"
+    "Bournemouth", "Weymouth", "Hinkley",
 ]
 
 # Friendlier display names shown on the image
@@ -298,7 +297,7 @@ def generate_image(tide_data, photo_data=None):
         try:
             photo_img, photographer = photo_data
             # Resize to 1080 wide, 200 tall strip
-            strip_h = 200
+            strip_h = 320
             ratio = 1080 / photo_img.width
             new_h = int(photo_img.height * ratio)
             photo_img = photo_img.resize((1080, new_h), Image.LANCZOS)
@@ -308,12 +307,12 @@ def generate_image(tide_data, photo_data=None):
             # Darken slightly
             from PIL import ImageEnhance
             photo_img = ImageEnhance.Brightness(photo_img).enhance(0.7)
-            img.paste(photo_img, (0, 830))
+            img.paste(photo_img, (0, 710))
             # Overlay text on photo
-            draw.text((20, 840), "TODAY'S COAST", font=font(13, True), fill=TITLE)
-            draw.text((20, 858), "Plan your coastal day safely", font=font(16, True), fill=TEXT)
-            draw.text((20, 882), "#UKTides #CoastalSafety #UKCoast #Cornwall #Devon", font=font(13), fill=MUTED)
-            draw.text((1060, 1022), f"Photo: {photographer} / Pixabay", font=font(11), fill=(80,100,120), anchor="rb")
+            draw.text((20, 720), "TODAY'S COAST", font=font(13, True), fill=TITLE)
+            draw.text((20, 738), "Plan your coastal day safely", font=font(16, True), fill=TEXT)
+            draw.text((20, 762), "#UKTides #CoastalSafety #UKCoast #Cornwall #Devon", font=font(13), fill=MUTED)
+            draw.text((1060, 900), f"Photo: {photographer} / Pixabay", font=font(11), fill=(80,100,120), anchor="rb")
         except Exception as e:
             print(f"  Could not paste photo: {e}")
 
@@ -383,10 +382,8 @@ def main():
         display = DISPLAY_NAMES.get(info["name"], info["name"])
         tide_data[sid] = {**info, "name": display, "data": get_tide_readings(sid)}
 
-    print("\nFetching coastal photo...")
-    photo_data = fetch_coastal_photo()
     print("\nGenerating image...")
-    image_path = generate_image(tide_data, photo_data)
+    image_path = generate_image(tide_data)
 
     print("\nSending email...")
     send_email(image_path)
