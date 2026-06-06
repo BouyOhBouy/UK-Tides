@@ -382,8 +382,10 @@ def main():
         display = DISPLAY_NAMES.get(info["name"], info["name"])
         tide_data[sid] = {**info, "name": display, "data": get_tide_readings(sid)}
 
+    print("\nFetching coastal photo...")
+    photo_data = fetch_coastal_photo()
     print("\nGenerating image...")
-    image_path = generate_image(tide_data)
+    image_path = generate_image(tide_data, photo_data)
 
     print("\nSending email...")
     send_email(image_path)
