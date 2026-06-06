@@ -23,4 +23,5 @@ jobs:
         env:
           GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
           PIXABAY_API_KEY: ${{ secrets.PIXABAY_API_KEY }}
+          ADMIRALTY_API_KEY: ${{ secrets.ADMIRALTY_API_KEY }}
         run: python uk_tides_bot.py
