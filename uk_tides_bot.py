@@ -347,7 +347,7 @@ def generate_photo_post(photo_data):
 
 # ─── EMAIL ────────────────────────────────────────────────────────────────────
 
-def send_email(image_path):
+def send_email(image_path, photo_path=None):
     if not GMAIL_PASSWORD:
         print("No Gmail app password — skipping email.")
         return
