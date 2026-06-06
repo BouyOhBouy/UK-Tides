@@ -401,11 +401,14 @@ def main():
         display = DISPLAY_NAMES.get(info["name"], info["name"])
         tide_data[sid] = {**info, "name": display, "data": get_tide_readings(sid)}
 
-    print("\nGenerating image...")
+    print("\nFetching coastal photo...")
+    photo_data = fetch_coastal_photo()
+    print("\nGenerating tide image...")
     image_path = generate_image(tide_data)
-
+    print("\nGenerating photo post...")
+    photo_path = generate_photo_post(photo_data)
     print("\nSending email...")
-    send_email(image_path)
+    send_email(image_path, photo_path)
 
     print("\nDone.")
 
